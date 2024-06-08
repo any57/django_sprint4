@@ -19,4 +19,4 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('profile/<slug:username>/', views.profile, name='profile'),
     path('category/<slug:category_slug>/',
-         views.category, name='category_posts'),]
+         views.category, name='category_posts'), ]
