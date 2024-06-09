@@ -10,18 +10,25 @@ from django.utils import timezone
 from blog.models import Category, Post, Comment
 from blog.forms import ProfileUpdateForm, PostForm, CommentForm
 
-User = get_user_model()
+from blog.constants import PAGE
 
-PAGE = 10  # количество постов на страницу
+User = get_user_model()
 
 
 def public_posts():
     """Функция для фильтрации видимых постов."""
     return Post.objects.select_related(
-        'author', 'category').filter(
-            pub_date__lte=timezone.now(),
-            is_published=True, category__is_published=True).annotate(
-                comment_count=Count('comments')).order_by('-pub_date')
+        'author',
+        'category'
+    ).filter(
+        pub_date__lte=timezone.now(),
+        is_published=True,
+        category__is_published=True
+    ).annotate(
+        comment_count=Count('comments')
+    ).order_by(
+        '-pub_date'
+    )
 
 
 def index(request):
@@ -36,13 +43,18 @@ def index(request):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if post.author != request.user:
-        post = get_object_or_404(Post, pk=post_id,
-                                 is_published=True,
-                                 pub_date__lte=timezone.now(),
-                                 category__is_published=True)
+        post = get_object_or_404(
+            Post, pk=post_id,
+            is_published=True,
+            pub_date__lte=timezone.now(),
+            category__is_published=True
+        )
     comments = Comment.objects.filter(post_id=post_id).order_by('created_at')
-    context = {'post': post, 'comments': comments,
-               'form': CommentForm()}
+    context = {
+        'post': post,
+        'comments': comments,
+        'form': CommentForm()
+    }
     return render(request, 'blog/detail.html', context)
 
 
@@ -63,8 +75,11 @@ def create_post(request):
 def edit_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if request.user.is_authenticated and request.user == post.author:
-        form = PostForm(request.POST or None, files=request.FILES or None,
-                        instance=post)
+        form = PostForm(
+            request.POST or None,
+            files=request.FILES or None,
+            instance=post
+        )
         context = {'form': form}
         if form.is_valid():
             post.save()
